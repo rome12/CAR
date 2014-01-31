@@ -34,10 +34,10 @@ public class FtpRequest extends Thread {
 	
 	public void processRequest() throws IOException{
 
-		System.out.println("Attente d'une commande");
+		Serveur.printout("Attente d'une commande");
 		String messageIn = in.readLine();
 		while(running){
-			
+			Serveur.printout("Commande reçu :"+messageIn);
 			switch(messageIn.split(" ")[0]){
 			case "USER" :
 				this.processUSER(messageIn);
@@ -69,18 +69,18 @@ public class FtpRequest extends Thread {
 			default :
 				out.writeBytes("502 Command not implemented \n");
 			}
-			System.out.println("Attente d'une commande");
+			Serveur.printout("Attente d'une commande");
 			messageIn = in.readLine();
 		}
 		sock.close();
 	}
 	
 	public void processUSER(String messageIn){
-		System.out.println("Methode processUSER");
+		Serveur.printout("Methode processUSER");
 	}
 	
 	public void processPASS(String messageIn){
-		System.out.println("Methode processPASS");
+		Serveur.printout("Methode processPASS");
 	}
 
 	public void processRETR(String messageIn){
