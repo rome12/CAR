@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -11,6 +12,7 @@ public class FtpRequest extends Thread {
 	int port;
 	String repertoire;
 	BufferedReader in;
+	DataOutputStream out;
 	Boolean running;
 
 	public FtpRequest(Socket sock, int port, String repertoire){
@@ -23,6 +25,7 @@ public class FtpRequest extends Thread {
 	public void run(){
 		try {
 			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+			out = new DataOutputStream(sock.getOutputStream());
 			this.processRequest();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -31,6 +34,7 @@ public class FtpRequest extends Thread {
 	
 	public void processRequest() throws IOException{
 
+		System.out.println("Attente d'une commande");
 		String messageIn = in.readLine();
 		while(running){
 			
@@ -50,15 +54,61 @@ public class FtpRequest extends Thread {
 			case "LIST" :
 				this.processLIST(messageIn);
 				break;
+			case "PWD" :
+				this.processPWD(messageIn);
+				break;
+			case "CWD" :
+				this.processCWD(messageIn);
+				break;
+			case "CDUP" :
+				this.processCDUP(messageIn);
+				break;
 			case "QUIT" :
 				this.processQUIT(messageIn);
 				break;
 			default :
-				System.out.println("Command not found");
+				out.writeBytes("502 Command not implemented \n");
 			}
-		
+			System.out.println("Attente d'une commande");
+			messageIn = in.readLine();
 		}
 		sock.close();
+	}
+	
+	public void processUSER(String messageIn){
+		System.out.println("Methode processUSER");
+	}
+	
+	public void processPASS(String messageIn){
+		System.out.println("Methode processPASS");
+	}
+
+	public void processRETR(String messageIn){
+	
+	}
+	
+	public void processSTOR(String messageIn){
+		
+	}
+	
+	public void processLIST(String messageIn){
+		
+	}
+	
+	public void processPWD(String messageIn){
+		
+	}
+
+	public void processCWD(String messageIn){
+		
+	}
+	
+	public void processCDUP(String messageIn){
+		
+	}
+	
+	public void processQUIT(String messageIn){
+		running = false;
 	}
 	
 	
