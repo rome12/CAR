@@ -8,3 +8,5 @@ Méthode :
 USER - PASS : Benjamin
 RETR - STOR : Romain - Maxime
 List - PWD : Henri
+
+/!\ fait : LIST, PWD, CWD, CDUP, QUIT
