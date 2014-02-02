@@ -38,7 +38,7 @@ public class FtpRequest extends Thread {
 
     public void processRequest() throws IOException {
         this.directory = new DirectoryNavigator(this.repertoire);
-        this.output(220, "Welcome on our server!");
+        this.respond(220, "Welcome on our server!");
         Serveur.printout("Attente d'une commande");
 
         String messageIn = in.readLine();
@@ -49,7 +49,7 @@ public class FtpRequest extends Thread {
             if (messageIn != null) {
                 String[] parts = messageIn.split(" ");
                 if (parts.length > 0) {
-                    String tmp = parts[0];
+                    String tmp = parts[0].toUpperCase();
                     if (tmp.equals("USER")) {
                         this.processUSER(messageIn);
                     } else if (tmp.equals("PASS")) {
@@ -59,7 +59,7 @@ public class FtpRequest extends Thread {
                     } else if (tmp.equals("STOR")) {
                         this.processSTOR(messageIn);
                     } else if (tmp.equals("LIST")) {
-                        this.processLIST(parts);
+                        this.processLIST(messageIn);
                     } else if ("PWD".equals(tmp)) {
                         this.processPWD(messageIn);
                     } else if ("CWD".equals(tmp)) {
@@ -70,7 +70,7 @@ public class FtpRequest extends Thread {
                         this.processQUIT(messageIn);
                         break;
                     } else {
-                        this.output(502, "Command not implemented");
+                        this.respond(502, "Command not implemented");
                     }
                 }
             }
@@ -80,7 +80,7 @@ public class FtpRequest extends Thread {
         sock.close();
     }
 
-    private void output(int code, String information) {
+    private void respond(int code, String information) {
         try {
             out.writeBytes(Integer.toString(code) + " " + information + "\n");
             Serveur.printout("-----------------------\n\tresponse");
@@ -93,7 +93,7 @@ public class FtpRequest extends Thread {
         }
     }
 
-    private void multiple_output(int code, String[] information) {
+    private void multiple_respond(int code, String[] information) {
         try {
             Serveur.printout("-----------------------\n\tresponse");
             for (int i = 0; i < information.length; i++) {
@@ -122,30 +122,69 @@ public class FtpRequest extends Thread {
     public void processSTOR(String messageIn) {
     }
 
-    public void processLIST(String[] messageIn) {
-        if (messageIn.length > 1) {
-            for (int i = 1; i < messageIn.length; i++) {
-                System.err.print("PATH" + messageIn[i]);
-                multiple_output(257, directory.list_working_directory(messageIn[i]));
-            }
+    public void processLIST(String messageIn) {
+        String[] parts = messageIn.split(" ");
 
-        } else {
-            multiple_output(257, directory.list_working_directory());
+        try {
+
+            if (parts.length >= 2) {
+                for (int i = 1; i < parts.length; i++) {
+                    multiple_respond(257, directory.list_working_directory(parts[i]));
+                }
+
+            } else {
+                multiple_respond(257, directory.list_working_directory());
+            }
+        } catch (Exception ex) {
+            respond(550, "folder not found.");
         }
     }
 
     public void processPWD(String messageIn) {
-        this.output(257, "\"" + directory.get_working_directory() + "\" is your current location");
+        this.respond(257, "\"" + directory.get_working_directory() + "\" is your current location");
     }
 
     public void processCWD(String messageIn) {
-        this.output(250, "OK. Current directory is " + directory.get_working_directory());
+        String[] parts = messageIn.split(" ");
+        try {
+            if (parts.length >= 2) {
+
+                directory.change_working_directory(parts[1]);
+                this.respond(250, "OK. Current directory is " + directory.get_working_directory());
+
+
+            } else {
+
+                directory.change_working_directory("/");
+                this.respond(250, "OK. Current directory is " + directory.get_working_directory());
+            }
+        } catch (Exception ex) {
+            this.respond(550, "Can't change directory to aaa: No such file or directory.");
+            try {
+                directory.change_working_directory("/");
+                this.respond(250, "OK. Current directory is " + directory.get_working_directory());
+            } catch (Exception ex1) {
+            }
+
+
+        }
     }
 
     public void processCDUP(String messageIn) {
+        try {
+            directory.change_working_directory("../");
+        } catch (Exception ex) {
+            try {
+                directory.change_working_directory("/");
+            } catch (Exception ex1) {
+            }
+        }
+        this.respond(250, "OK. Current directory is " + directory.get_working_directory());
+
     }
 
     public void processQUIT(String messageIn) {
+        this.multiple_respond(221, new String[]{"Goodbye.", "quit"});
         Serveur.printout("Connexion fermée par l'utilisateur");
         running = false;
     }
