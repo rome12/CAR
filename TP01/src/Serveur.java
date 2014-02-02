@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class Serveur {
 
 	static boolean verbose = false ;
-	
+        public static int port = 7000;
 	public static void printout(String s){
 		if(verbose)
 			System.out.println(s);
@@ -17,7 +17,6 @@ public class Serveur {
 	public static void main(String[] args) {
 		ServerSocket servSocket; 
 		Socket sock;
-		int port = 7000;
 		
 		
 		if(args.length < 1){
@@ -41,14 +40,14 @@ public class Serveur {
 		}
 		
 		try {
-			servSocket = new ServerSocket(port);
+			servSocket = new ServerSocket(Serveur.port);
 			
-			printout("Serveur lancé");
+			printout("Serveur lancé sur le port "+Serveur.port);
 			while(true){
 				printout("Attente d'une connection");
 				sock = servSocket.accept();
 				printout("Connection détectée");
-				FtpRequest ftpRequest = new FtpRequest(sock,port,repertoire);
+				FtpRequest ftpRequest = new FtpRequest(sock,Serveur.port,repertoire);
 				ftpRequest.start();
 			}
 			
