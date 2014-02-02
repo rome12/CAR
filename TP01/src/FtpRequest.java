@@ -121,7 +121,7 @@ public class FtpRequest extends Thread {
 
     public void processSTOR(String messageIn) {
     }
-
+    
     public void processLIST(String messageIn) {
         String[] parts = messageIn.split(" ");
 
