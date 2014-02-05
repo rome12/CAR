@@ -33,10 +33,27 @@ public class DirectoryNavigator {
 
     public String[] list_working_directory(String path) throws IOException, NullPointerException {
         File folder = new File(this.calculate_absolute_path(path));
-        File[] listOfFiles = folder.listFiles();
         List<String> s = new ArrayList<String>();
-        for (int i = 0; i < listOfFiles.length; i++) {
-            s.add(listOfFiles[i].getName());
+        s.add("======================================");
+        s.add("MODE         FILENAME         ");
+
+        if (folder.isDirectory()) {
+            File[] listOfFiles = folder.listFiles();
+
+            for (int i = 0; i < listOfFiles.length; i++) {
+                String x = listOfFiles[i].canExecute() ? "x" : "-";
+                String r = listOfFiles[i].canRead() ? "r" : "-";
+                String w = listOfFiles[i].canWrite() ? "w" : "-";
+                String d = listOfFiles[i].isDirectory() ? "d" : "-";
+                s.add(d + x + r + w + "         " + listOfFiles[i].getName() + "");
+            }
+
+        } else if (folder.isFile()) {
+            String x = folder.canExecute() ? "x" : "-";
+            String r = folder.canRead() ? "r" : "-";
+            String w = folder.canWrite() ? "w" : "-";
+            String d = folder.isDirectory() ? "d" : "-";
+            s.add(d + x + r + w + "         " + folder.getName() + "");
         }
         String[] simple = new String[s.size()];
         s.toArray(simple);
@@ -64,15 +81,7 @@ public class DirectoryNavigator {
     }
 
     public String[] list_working_directory() throws IOException, NullPointerException {
-        File folder = new File(calculate_absolute_path(this.working_directory));
-        File[] listOfFiles = folder.listFiles();
-        List<String> s = new ArrayList<String>();
-        for (int i = 0; i < listOfFiles.length; i++) {
-            s.add(listOfFiles[i].getName());
-        }
-        String[] simple = new String[s.size()];
-        s.toArray(simple);
-        return simple;
+        return this.list_working_directory(this.working_directory);
 
 
     }
