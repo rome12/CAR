@@ -54,6 +54,8 @@ public class DirectoryNavigator {
             String w = folder.canWrite() ? "w" : "-";
             String d = folder.isDirectory() ? "d" : "-";
             s.add(d + x + r + w + "         " + folder.getName() + "");
+        }else{
+            throw new IOException();
         }
         String[] simple = new String[s.size()];
         s.toArray(simple);
