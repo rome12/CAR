@@ -2,6 +2,7 @@ package tools;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,34 +35,40 @@ public class DirectoryNavigator {
     public String[] list_working_directory(String path) throws IOException, NullPointerException {
         File folder = new File(this.calculate_absolute_path(path));
         List<String> s = new ArrayList<String>();
-        s.add("======================================");
-        s.add("MODE         FILENAME         ");
-
+        s.add("=====================================================");
+        s.add("MODE\tSIZE\tLAST MODIFIED\t\tFILENAME");
+        File[] listOfFiles = new File[]{};
         if (folder.isDirectory()) {
-            File[] listOfFiles = folder.listFiles();
-
-            for (int i = 0; i < listOfFiles.length; i++) {
-                String x = listOfFiles[i].canExecute() ? "x" : "-";
-                String r = listOfFiles[i].canRead() ? "r" : "-";
-                String w = listOfFiles[i].canWrite() ? "w" : "-";
-                String d = listOfFiles[i].isDirectory() ? "d" : "-";
-                s.add(d + x + r + w + "         " + listOfFiles[i].getName() + "");
-            }
-
+            listOfFiles = folder.listFiles();
         } else if (folder.isFile()) {
-            String x = folder.canExecute() ? "x" : "-";
-            String r = folder.canRead() ? "r" : "-";
-            String w = folder.canWrite() ? "w" : "-";
-            String d = folder.isDirectory() ? "d" : "-";
-            s.add(d + x + r + w + "         " + folder.getName() + "");
-        }else{
+            listOfFiles = new File[]{folder};
+        } else {
             throw new IOException();
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
+        for (int i = 0; i < listOfFiles.length; i++) {
+            String x = listOfFiles[i].canExecute() ? "x" : "-";
+            String r = listOfFiles[i].canRead() ? "r" : "-";
+            String w = listOfFiles[i].canWrite() ? "w" : "-";
+            String d = listOfFiles[i].isDirectory() ? "d" : "-";
+            String lastM = sdf.format(listOfFiles[i].lastModified());
+            String size = this.humanReadableByteCount(listOfFiles[i].length());
+            s.add(d + r + w + x + "\t" + size + "\t" + lastM + "\t" + listOfFiles[i].getName());
         }
         String[] simple = new String[s.size()];
         s.toArray(simple);
         return simple;
+    }
 
-
+    private static String humanReadableByteCount(long bytes) {
+        int unit = 1024;
+        char u = 'b';
+        if (bytes < unit) {
+            return bytes + " " + u;
+        }
+        int exp = (int) (Math.log(bytes) / Math.log(unit));
+        String pre = "KMGTPE".charAt(exp - 1) + "" + u;
+        return String.format("%.1f %s", bytes / Math.pow(unit, exp), pre);
     }
 
     private String calculate_absolute_path(String path) throws IOException, NullPointerException {
@@ -76,10 +83,6 @@ public class DirectoryNavigator {
             return b;
         }
         throw new IOException("wrong path");
-
-
-
-
     }
 
     public String[] list_working_directory() throws IOException, NullPointerException {
