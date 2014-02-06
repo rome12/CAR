@@ -1,3 +1,5 @@
+package ftp;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -9,6 +11,7 @@ public class Serveur {
 
     static boolean verbose = false;
     public static int port = 7000;
+    public static int dataport = 7010;
 
     public static void printout(String s) {
         if (verbose) {
@@ -19,7 +22,6 @@ public class Serveur {
     public static void main(String[] args) {
         ServerSocket servSocket;
         Socket sock;
-
 
         if (args.length < 1) {
             System.err.println("Usage : serveur (repertoire) [-v]");
@@ -50,14 +52,13 @@ public class Serveur {
             printout("Répertoire racine : " + repertoire);
 
             while (true) {
-                printout("Attente d'une connection");
-                sock = servSocket.accept();
-                printout("Connection détectée");
-                FtpRequest ftpRequest = new FtpRequest(sock, Serveur.port, repertoire);
-                ftpRequest.start();
+                    printout("Attente d'une connection");
+                    sock = servSocket.accept();
+                    printout("Connection détectée.");
+                    FtpRequest ftpRequest = new FtpRequest(sock, Serveur.port, repertoire, Serveur.dataport);
+                    Serveur.dataport++;
+                    ftpRequest.start();
             }
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }

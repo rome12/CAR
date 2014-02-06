@@ -1,29 +1,34 @@
+package ftp;
+
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import tools.DirectoryNavigator;
+import ftp.tools.DirectoryNavigator;
 
 public class FtpRequest extends Thread {
 
     private Socket sock;
     private int port;
+    private int data_port;
     private String repertoire;
     private BufferedReader in;
-    private DataOutputStream out;
+    private static DataOutputStream out;
+    private static DataOutputStream data_out;
     private Boolean running;
     private DirectoryNavigator directory;
 
-    public FtpRequest(Socket sock, int port, String repertoire) {
+    public FtpRequest(Socket sock, int port, String repertoire,int dport) {
         this.sock = sock;
+        
         this.port = port;
+        
         this.repertoire = repertoire;
         this.running = true;
+        this.data_port=dport;
     }
 
     public void run() {
@@ -80,12 +85,10 @@ public class FtpRequest extends Thread {
         sock.close();
     }
 
-    private void respond(int code, String information) {
+    public static void respond(int code, String information) {
         try {
             out.writeBytes(Integer.toString(code) + " " + information + "\n");
-            Serveur.printout("-----------------------\n\tresponse");
             Serveur.printout(Integer.toString(code) + " " + information);
-            Serveur.printout("-----------------------");
 
         } catch (IOException ex) {
             System.err.append("fail in response");
@@ -93,15 +96,12 @@ public class FtpRequest extends Thread {
         }
     }
 
-    private void multiple_respond(int code, String[] information) {
+    public static void multiple_respond(int code, String[] information) {
         try {
-            Serveur.printout("-----------------------\n\tresponse");
             for (int i = 0; i < information.length; i++) {
                 out.writeBytes(Integer.toString(code) + " " + information[i] + "\n");
                 Serveur.printout(Integer.toString(code) + " " + information[i]);
             }
-            Serveur.printout("-----------------------");
-
         } catch (IOException ex) {
             System.err.append("fail in response");
 
