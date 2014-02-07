@@ -2,7 +2,6 @@ package ftp.tools;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,10 +32,9 @@ public class DirectoryNavigator {
     }
 
     public String[] list_working_directory(String path) throws IOException, NullPointerException {
+                        System.err.println(calculate_absolute_path(path));
         File folder = new File(this.calculate_absolute_path(path));
         List<String> s = new ArrayList<String>();
-        s.add("=====================================================");
-        s.add("MODE\tSIZE\tLAST MODIFIED\t\tFILENAME");
         File[] listOfFiles = new File[]{};
         if (folder.isDirectory()) {
             listOfFiles = folder.listFiles();
@@ -45,15 +43,15 @@ public class DirectoryNavigator {
         } else {
             throw new IOException();
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy MM dd HH:mm");
-        for (int i = 0; i < listOfFiles.length; i++) {
-            String x = listOfFiles[i].canExecute() ? "x" : "-";
-            String r = listOfFiles[i].canRead() ? "r" : "-";
-            String w = listOfFiles[i].canWrite() ? "w" : "-";
-            String d = listOfFiles[i].isDirectory() ? "d" : "-";
-            String lastM = sdf.format(listOfFiles[i].lastModified());
-            String size = this.humanReadableByteCount(listOfFiles[i].length());
-            s.add(d + r + w + x + "\t" + size + "\t" + lastM + "\t" + listOfFiles[i].getName());
+        for (File file : listOfFiles) {
+            if (file.isFile()) {
+                s.add("\053,r,i" + file.length() + ",\011"
+                        + file.getName() + "\015\012");
+            }
+            if (file.isDirectory()) {
+                s.add("\053m" + file.lastModified() + ",/,\011"
+                        + file.getName() + "\015\012");
+            }  
         }
         String[] simple = new String[s.size()];
         s.toArray(simple);

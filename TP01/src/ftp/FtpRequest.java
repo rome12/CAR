@@ -1,6 +1,6 @@
 package ftp;
 
-
+import ftp.tools.DataTransferManager;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import ftp.tools.DirectoryNavigator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FtpRequest extends Thread {
 
@@ -21,14 +23,14 @@ public class FtpRequest extends Thread {
     private Boolean running;
     private DirectoryNavigator directory;
 
-    public FtpRequest(Socket sock, int port, String repertoire,int dport) {
+    public FtpRequest(Socket sock, int port, String repertoire, int dport) {
         this.sock = sock;
-        
+
         this.port = port;
-        
+
         this.repertoire = repertoire;
         this.running = true;
-        this.data_port=dport;
+        this.data_port = dport;
     }
 
     public void run() {
@@ -39,6 +41,13 @@ public class FtpRequest extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public DataTransferManager init_data_transfert() {
+        DataTransferManager dtm = new DataTransferManager(this.data_port);
+        dtm.initiate_transfer("127.0.0.1");
+        dtm.initiate_data_output();
+        return dtm;
     }
 
     public void processRequest() throws IOException {
@@ -75,7 +84,7 @@ public class FtpRequest extends Thread {
                         this.processQUIT(messageIn);
                         break;
                     } else {
-                        this.respond(502, "Command not implemented");
+                        this.respond(200, "Command not implemented");
                     }
                 }
             }
@@ -83,6 +92,21 @@ public class FtpRequest extends Thread {
             messageIn = in.readLine();
         }
         sock.close();
+    }
+
+    public void transmit(String s) throws IOException {
+        DataTransferManager dtm = init_data_transfert();
+        dtm.transmit(s);
+        dtm.close();
+    }
+
+    public void multiple_transmit(String[] transmit) throws IOException {
+        DataTransferManager dtm = init_data_transfert();
+        for (String s : transmit) {
+            dtm.transmit(s);
+        }
+        dtm.close();
+
     }
 
     public static void respond(int code, String information) {
@@ -110,32 +134,41 @@ public class FtpRequest extends Thread {
 
     public void processUSER(String messageIn) {
         Serveur.printout("Methode processUSER");
+        respond(200, "OK");
     }
 
     public void processPASS(String messageIn) {
         Serveur.printout("Methode processPASS");
+        respond(200, "OK");
     }
 
     public void processRETR(String messageIn) {
+        respond(200, "OK");
     }
 
     public void processSTOR(String messageIn) {
+        respond(200, "OK");
     }
-    
+
     public void processLIST(String messageIn) {
+        respond(150, "Here comes the directory listing.");
         String[] parts = messageIn.split(" ");
 
         try {
 
             if (parts.length >= 2) {
                 for (int i = 1; i < parts.length; i++) {
-                    multiple_respond(257, directory.list_working_directory(parts[i]));
+                    multiple_transmit(directory.list_working_directory(parts[i]));
+                    respond(226, "Directory send OK.");
                 }
 
             } else {
-                multiple_respond(257, directory.list_working_directory());
+                multiple_transmit(directory.list_working_directory());
+                respond(226, "Directory send OK.");
+
             }
         } catch (Exception ex) {
+            Logger.getLogger(FtpRequest.class.getName()).log(Level.SEVERE, null, ex);
             respond(550, "folder not found.");
         }
     }
