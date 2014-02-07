@@ -56,7 +56,6 @@ public class Serveur {
                     sock = servSocket.accept();
                     printout("Connection détectée.");
                     FtpRequest ftpRequest = new FtpRequest(sock, Serveur.port, repertoire, Serveur.dataport);
-                    Serveur.dataport++;
                     ftpRequest.start();
             }
         } catch (IOException e) {
