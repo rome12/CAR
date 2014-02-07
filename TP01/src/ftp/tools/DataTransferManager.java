@@ -1,60 +1,70 @@
 package ftp.tools;
 
-import ftp.FtpRequest;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DataTransferManager {
+public class DataTransferManager{
 
-    private Socket dataServerSocket;
-    private int port;
+    private ServerSocket dataServerSocket;
     private DataOutputStream data_out;
+    private boolean passive_mode = false;
+    public static ArrayList<Thread> workingThreads;
 
-    public DataTransferManager(int port) {
-        this.port = port;
+    public void setPassiveMode() {
+        passive_mode = true;
     }
 
-    public boolean initiate_transfer(String ip) {
-        try {
-            dataServerSocket = new Socket(ip,this.port);
-            
-            String s = Integer.toHexString(this.port);
-            int i;
-            int j;
-            if (s.length() == 3) {
-                i = Integer.parseInt(s.substring(0, 1), 16);
-                j = Integer.parseInt(s.substring(1), 16);
-            } else {
-                i = Integer.parseInt(s.substring(0, 2), 16);
-                j = Integer.parseInt(s.substring(2), 16);
+    public void setActiveMode() {
+        passive_mode = false;
+    }
+
+    public DataTransferManager(int port) {
+        workingThreads = new ArrayList<Thread>();
+    }
+
+    public boolean initiate_transfer(String ip, int port) {
+        if (passive_mode) 
+        {
+            try {
+            } catch (Exception ex) {
+                Logger.getLogger(DataTransferManager.class.getName()).log(Level.SEVERE, null, ex);
             }
-            return true;
-        } catch (IOException ex) {
+        } else {
+            return initiate_transfer(port);
+        }
+        return false;
+
+    }
+
+    public boolean initiate_transfer(int port) {
+        if (!passive_mode) {
+            try {
+                dataServerSocket = new ServerSocket(port);
+                return true;
+
+            } catch (Exception ex) {
+                Logger.getLogger(DataTransferManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return false;
     }
 
     public void close() throws IOException {
-        data_out.close();
-        dataServerSocket.close();
     }
 
     public boolean initiate_data_output() {
-        try {
-            data_out = new DataOutputStream(dataServerSocket.getOutputStream());
-            return true;
-        } catch (IOException ex) {
-        }
+
         return false;
     }
 
-    public void transmit(String s) throws IOException {
-        data_out.writeBytes(s + "\n");
-        data_out.flush();
-
+    public boolean initiate_data_input() {
+        return false;
     }
+
+
 }
