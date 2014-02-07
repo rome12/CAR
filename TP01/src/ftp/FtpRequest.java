@@ -3,6 +3,8 @@ package ftp;
 import ftp.tools.DataTransferManager;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
@@ -22,6 +24,8 @@ public class FtpRequest extends Thread {
     private static DataOutputStream data_out;
     private Boolean running;
     private DirectoryNavigator directory;
+    private String user;
+    private String mdp;
 
     public FtpRequest(Socket sock, int port, String repertoire, int dport) {
         this.sock = sock;
@@ -133,13 +137,54 @@ public class FtpRequest extends Thread {
     }
 
     public void processUSER(String messageIn) {
-        Serveur.printout("Methode processUSER");
-        respond(200, "OK");
+    	 Serveur.printout("Methode processUSER");
+         String[] parts = messageIn.split(" ");
+         try {
+             if (parts.length == 2) {
+            	 user = parts[1];
+                 respond(331, "User name okay, need password.");
+             } else {
+            	 respond(503, "Bad sequence of commands.");
+             }
+         } catch (Exception ex) {}
     }
 
-    public void processPASS(String messageIn) {
-        Serveur.printout("Methode processPASS");
-        respond(200, "OK");
+    public void processPASS(String messageIn) throws IOException {
+    	Serveur.printout("Methode processPASS");
+        String[] parts = messageIn.split(" ");
+        try {
+            if (parts.length == 2) {
+	        mdp = parts[1];
+	  		String chaine1="";
+	  		String chaine2="";
+	  		boolean bool=true;
+	
+	
+	  		BufferedReader brr=new BufferedReader(new InputStreamReader(new FileInputStream("tabledesmdp.txt")));
+	  		String ligne;
+	 			while ((ligne=brr.readLine())!=null){
+	 				if (bool){
+	 					chaine2="";
+	 					chaine1=ligne+"\n";
+	 					bool=!bool;
+	 				}
+	 				else {
+	 					chaine2=ligne+"\n";
+	 					bool=!bool;
+	 				}
+	 				if ((this.user+"\n").equals(chaine1) && (this.mdp+"\n").equals(chaine2)) {
+	 					respond(230, "User logged in, proceed. Logged out if appropriate.");
+	 					brr.close(); 
+	 					return;
+	 				}
+	 			}
+	  		respond(530,"Not logged in.");
+	  		brr.close(); 
+            }  else {
+           	 respond(503, "Bad sequence of commands.");
+            }
+            }catch (Exception ex) {}
+
     }
 
     public void processRETR(String messageIn) {
