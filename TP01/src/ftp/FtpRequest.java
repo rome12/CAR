@@ -1,40 +1,50 @@
 package ftp;
 
-import ftp.tools.DataTransferManager;
+//import ftp.tools.DataTransferManager;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
+
 import ftp.tools.DirectoryNavigator;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.net.InetAddress;
 
 public class FtpRequest extends Thread {
 
     private Socket sock;
-    private int port;
-    private int data_port;
+    private Socket data_sock;
+    private ServerSocket data_server_sock;
+    private int data_port_actif;
+    private int data_port_passif;
+    private InetAddress data_adress;
     private String repertoire;
     private BufferedReader in;
-    private static DataOutputStream out;
-    private static DataOutputStream data_out;
+    private DataOutputStream out;
+    private DataOutputStream data_out;
     private Boolean running;
     private DirectoryNavigator directory;
     private String user;
     private String mdp;
+    private Boolean passive_mode = false;
 
-    public FtpRequest(Socket sock, int port, String repertoire, int dport) {
+
+    public FtpRequest(Socket sock, String repertoire, int data_port_passif) {
         this.sock = sock;
-
-        this.port = port;
-
         this.repertoire = repertoire;
         this.running = true;
-        this.data_port = dport;
+        this.data_port_passif = data_port_passif;
     }
 
     public void run() {
@@ -47,13 +57,6 @@ public class FtpRequest extends Thread {
         }
     }
 
-    public DataTransferManager init_data_transfert() {
-        DataTransferManager dtm = new DataTransferManager(this.data_port);
-        dtm.initiate_transfer("127.0.0.1");
-        dtm.initiate_data_output();
-        return dtm;
-    }
-
     public void processRequest() throws IOException {
         this.directory = new DirectoryNavigator(this.repertoire);
         this.respond(220, "Welcome on our server!");
@@ -62,8 +65,7 @@ public class FtpRequest extends Thread {
         String messageIn = in.readLine();
 
         while (running) {
-            Serveur.printout("Commande reçu :" + messageIn);
-            //Ce systeme pour Java < 7
+            Serveur.printout("Commande recu :" + messageIn);
             if (messageIn != null) {
                 String[] parts = messageIn.split(" ");
                 if (parts.length > 0) {
@@ -82,7 +84,11 @@ public class FtpRequest extends Thread {
                         this.processPWD(messageIn);
                     } else if ("CWD".equals(tmp)) {
                         this.processCWD(messageIn);
-                    } else if (tmp.equals("CDUP")) {
+                    } else if ("PASV".equals(tmp)) {
+                        this.processPASV(messageIn);
+                    }else if ("PORT".equals(tmp)) {
+                        this.processPORT(messageIn);
+                    }else if (tmp.equals("CDUP")) {
                         this.processCDUP(messageIn);
                     } else if (tmp.equals("QUIT")) {
                         this.processQUIT(messageIn);
@@ -98,22 +104,9 @@ public class FtpRequest extends Thread {
         sock.close();
     }
 
-    public void transmit(String s) throws IOException {
-        DataTransferManager dtm = init_data_transfert();
-        dtm.transmit(s);
-        dtm.close();
-    }
 
-    public void multiple_transmit(String[] transmit) throws IOException {
-        DataTransferManager dtm = init_data_transfert();
-        for (String s : transmit) {
-            dtm.transmit(s);
-        }
-        dtm.close();
 
-    }
-
-    public static void respond(int code, String information) {
+	public void respond(int code, String information) {
         try {
             out.writeBytes(Integer.toString(code) + " " + information + "\n");
             Serveur.printout(Integer.toString(code) + " " + information);
@@ -124,7 +117,7 @@ public class FtpRequest extends Thread {
         }
     }
 
-    public static void multiple_respond(int code, String[] information) {
+    public void multiple_respond(int code, String[] information) {
         try {
             for (int i = 0; i < information.length; i++) {
                 out.writeBytes(Integer.toString(code) + " " + information[i] + "\n");
@@ -134,6 +127,22 @@ public class FtpRequest extends Thread {
             System.err.append("fail in response");
 
         }
+    }
+    
+    public void connect_data() throws IOException{
+    	if(passive_mode){
+        	data_sock = data_server_sock.accept();
+    	}
+    	else {
+    		data_sock = new Socket(data_adress, data_port_actif);
+    	}
+    	data_out = new DataOutputStream(data_sock.getOutputStream());
+    }
+    
+    public void close_data() throws IOException{
+    	data_sock.close();
+    	data_out.close();
+        if(passive_mode)data_server_sock.close();
     }
 
     public void processUSER(String messageIn) {
@@ -159,8 +168,7 @@ public class FtpRequest extends Thread {
 	  		String chaine2="";
 	  		boolean bool=true;
 	
-	
-	  		BufferedReader brr=new BufferedReader(new InputStreamReader(new FileInputStream("tabledesmdp.txt")));
+	  		BufferedReader brr=new BufferedReader(new InputStreamReader(new FileInputStream("login_mdp.txt")));
 	  		String ligne;
 	 			while ((ligne=brr.readLine())!=null){
 	 				if (bool){
@@ -188,11 +196,49 @@ public class FtpRequest extends Thread {
     }
 
     public void processRETR(String messageIn) {
-        respond(200, "OK");
+
+    	FileInputStream fis = null;
+    	try {
+			fis = new FileInputStream(directory.get_absolute_path_to_working_directory()+"\\"+ messageIn.substring(5));
+			this.connect_data();
+	    	respond(150, "Accept RETR command");
+			int c;
+			
+			while ((c = fis.read()) != -1)
+			{
+				data_out.write(c);
+			}
+			
+			data_out.flush();
+			this.close_data();
+			fis.close();
+			respond(226, "Transfert fichier OK");
+    	} catch (IOException e) {
+			e.printStackTrace();
+		}
+
     }
 
     public void processSTOR(String messageIn) {
-        respond(200, "OK");
+
+		FileOutputStream fos = null;
+		try {		
+			fos = new FileOutputStream(directory.get_absolute_path_to_working_directory()+"\\"+ messageIn.substring(5));
+			this.connect_data();
+	    	respond(150, "Accept STOR command");
+			InputStream in = data_sock.getInputStream();
+			int c;
+			while ((c = in.read()) != -1)
+			{
+				fos.write(c);
+			}
+			fos.flush();
+			fos.close();
+			this.close_data();
+			respond(226, "Transfert fichier OK");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
     }
 
     public void processLIST(String messageIn) {
@@ -200,22 +246,32 @@ public class FtpRequest extends Thread {
         String[] parts = messageIn.split(" ");
 
         try {
-
+        	
+        	this.connect_data();
+    		
             if (parts.length >= 2) {
                 for (int i = 1; i < parts.length; i++) {
-                    multiple_transmit(directory.list_working_directory(parts[i]));
-                    respond(226, "Directory send OK.");
+                	String[] result = directory.list_working_directory(parts[i]);
+                	for(int j=0;j<result.length;j++){
+                		data_out.writeBytes(result[j]);
+                	}
                 }
-
             } else {
-                multiple_transmit(directory.list_working_directory());
-                respond(226, "Directory send OK.");
-
+            	String[] result = directory.list_working_directory();
+            	for(int j=0;j<result.length;j++){
+            		data_out.writeBytes(result[j]);
+            	}  
             }
+            
+            close_data();
+            
+            respond(226, "Directory send OK.");   
+        
         } catch (Exception ex) {
             Logger.getLogger(FtpRequest.class.getName()).log(Level.SEVERE, null, ex);
             respond(550, "folder not found.");
         }
+
     }
 
     public void processPWD(String messageIn) {
@@ -260,10 +316,39 @@ public class FtpRequest extends Thread {
         this.respond(250, "OK. Current directory is " + directory.get_working_directory());
 
     }
+    
+    private void processPASV(String messageIn) throws IOException {
+		this.passive_mode = true;
+		this.data_server_sock = new ServerSocket(this.data_port_passif);
+		String s=Integer.toHexString(this.data_port_passif);
+		int i;
+		int j;
+		if (s.length()==3) {
+		 i=Integer.parseInt(s.substring(0,1),16);
+		 j=Integer.parseInt(s.substring(1),16);
+		}
+		else {
+			 i=Integer.parseInt(s.substring(0,2),16);
+			 j=Integer.parseInt(s.substring(2),16);
+		}
+		this.respond(227, "Entering Passive Mode (127,0,0,1,"+i+","+j+") \n");
+	}
+    
+    private void processPORT(String messageIn) {
+    	this.passive_mode = false;
+		String[] port_args = messageIn.split(" ")[1].split(",");
+		try {
+			this.data_adress = InetAddress.getByName(port_args[0] + "." +port_args[1] + "." +port_args[2] + "." +port_args[3]) ;
+			this.data_port_actif = (Integer.parseInt(port_args[4]) * 256) + Integer.parseInt(port_args[5]);
+			this.respond(200,"PORT command successful with adresse :"+this.data_adress.toString()+" port : "+this.data_port_actif);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+    }
 
     public void processQUIT(String messageIn) {
         this.multiple_respond(221, new String[]{"Goodbye.", "quit"});
-        Serveur.printout("Connexion fermée par l'utilisateur");
+        Serveur.printout("Connexion fermee par l'utilisateur");
         running = false;
     }
 }

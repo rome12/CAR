@@ -11,7 +11,7 @@ public class Serveur {
 
     static boolean verbose = false;
     public static int port = 7000;
-    public static int dataport = 7010;
+    public static int data_port_passif = 7010;
 
     public static void printout(String s) {
         if (verbose) {
@@ -41,21 +41,21 @@ public class Serveur {
             }
         }
         if (!check_path) {
-            System.err.println("Le répertoire suivant n'existe pas.");
+            System.err.println("Le repertoire suivant n'existe pas.");
             System.exit(47);
         }
 
         try {
             servSocket = new ServerSocket(Serveur.port);
 
-            printout("Serveur lancé sur le port " + Serveur.port);
-            printout("Répertoire racine : " + repertoire);
+            printout("Serveur lance sur le port " + Serveur.port);
+            printout("Repertoire racine : " + repertoire);
 
             while (true) {
                     printout("Attente d'une connection");
                     sock = servSocket.accept();
-                    printout("Connection détectée.");
-                    FtpRequest ftpRequest = new FtpRequest(sock, Serveur.port, repertoire, Serveur.dataport);
+                    printout("Connection detectee.");
+                    FtpRequest ftpRequest = new FtpRequest(sock, repertoire, Serveur.data_port_passif);
                     ftpRequest.start();
             }
         } catch (IOException e) {
