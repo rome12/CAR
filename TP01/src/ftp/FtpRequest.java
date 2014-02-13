@@ -199,7 +199,7 @@ public class FtpRequest extends Thread {
 
     	FileInputStream fis = null;
     	try {
-			fis = new FileInputStream(directory.get_absolute_path_to_working_directory()+"\\"+ messageIn.substring(5));
+			fis = new FileInputStream(directory.get_absolute_path_to_working_directory()+"/"+ messageIn.substring(5));
 			this.connect_data();
 	    	respond(150, "Accept RETR command");
 			int c;
@@ -223,7 +223,7 @@ public class FtpRequest extends Thread {
 
 		FileOutputStream fos = null;
 		try {		
-			fos = new FileOutputStream(directory.get_absolute_path_to_working_directory()+"\\"+ messageIn.substring(5));
+			fos = new FileOutputStream(directory.get_absolute_path_to_working_directory()+"/"+ messageIn.substring(5));
 			this.connect_data();
 	    	respond(150, "Accept STOR command");
 			InputStream in = data_sock.getInputStream();
