@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DirectoryNavigator {
 
@@ -24,15 +26,29 @@ public class DirectoryNavigator {
         return this.working_directory;
     }
 
-    public void change_working_directory(String path) throws NullPointerException, IOException {
+    public void go_upper_directory() throws IOException {
+            change_working_directory(".." + File.separator);
+
+    }
+
+    public void change_working_directory(String path) throws IOException {
         String head = this.calculate_absolute_path(File.separator);
         String absolute = this.calculate_absolute_path(path);
         this.working_directory = absolute.replace(head, "");
         this.working_directory += File.separator;
     }
 
+    public Boolean change_working_directory() {
+        try {
+            this.change_working_directory(File.separator);
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
+    }
+
     public String[] list_working_directory(String path) throws IOException, NullPointerException {
-                        System.err.println(calculate_absolute_path(path));
+        System.err.println(calculate_absolute_path(path));
         File folder = new File(this.calculate_absolute_path(path));
         List<String> s = new ArrayList<String>();
         File[] listOfFiles = new File[]{};
@@ -51,13 +67,12 @@ public class DirectoryNavigator {
             if (file.isDirectory()) {
                 s.add("\053m" + file.lastModified() + ",/,\011"
                         + file.getName() + "\015\012");
-            }  
+            }
         }
         String[] simple = new String[s.size()];
         s.toArray(simple);
         return simple;
     }
-
 
     public String calculate_absolute_path(String path) throws IOException, NullPointerException {
         File f = new File(this.real_directory + File.separator);
@@ -68,7 +83,7 @@ public class DirectoryNavigator {
         }
         String b = file.getCanonicalPath();
         if (b.startsWith(s)) {
-            
+
             return b;
         }
         throw new IOException("wrong path");
