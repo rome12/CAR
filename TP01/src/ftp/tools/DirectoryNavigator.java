@@ -69,7 +69,7 @@ public class DirectoryNavigator {
         return String.format("%.1f %s", bytes / Math.pow(unit, exp), pre);
     }
 
-    private String calculate_absolute_path(String path) throws IOException, NullPointerException {
+    public String calculate_absolute_path(String path) throws IOException, NullPointerException {
         File f = new File(this.real_directory + "/");
         String s = f.getCanonicalPath();
         File file = new File(s + "/" + path);
@@ -78,6 +78,7 @@ public class DirectoryNavigator {
         }
         String b = file.getCanonicalPath();
         if (b.startsWith(s)) {
+            
             return b;
         }
         throw new IOException("wrong path");
