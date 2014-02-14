@@ -9,22 +9,23 @@ import java.util.logging.Logger;
 
 public class DirectoryNavigator {
 
-    private String working_directory;
-    private String real_directory;
+	private String working_directory;
+	private String real_directory;
 
-    public DirectoryNavigator(String real_directory) {
-        this.real_directory = real_directory;
-        this.working_directory = File.separator;
-    }
+	public DirectoryNavigator(String real_directory) {
+		this.real_directory = real_directory;
+		this.working_directory = File.separator;
+	}
 
-    public String get_absolute_path_to_working_directory() throws IOException {
-        File f = new File(this.real_directory + File.separator + this.working_directory + File.separator);
-        return f.getCanonicalPath();
-    }
+	public String get_absolute_path_to_working_directory() throws IOException {
+		File f = new File(this.real_directory + File.separator
+				+ this.working_directory + File.separator);
+		return f.getCanonicalPath();
+	}
 
-    public String get_working_directory() {
-        return this.working_directory;
-    }
+	public String get_working_directory() {
+		return this.working_directory;
+	}
 
     public void go_upper_directory() throws IOException {
             change_working_directory(".." + File.separator);
@@ -89,9 +90,9 @@ public class DirectoryNavigator {
         throw new IOException("wrong path");
     }
 
-    public String[] list_working_directory() throws IOException, NullPointerException {
-        return this.list_working_directory(this.working_directory);
+	public String[] list_working_directory() throws IOException,
+			NullPointerException {
+		return this.list_working_directory(this.working_directory);
 
-
-    }
+	}
 }
