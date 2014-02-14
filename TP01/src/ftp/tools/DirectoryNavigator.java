@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DirectoryNavigator {
 
@@ -51,7 +49,7 @@ public class DirectoryNavigator {
     public String[] list_working_directory(String path) throws IOException, NullPointerException {
         System.err.println(calculate_absolute_path(path));
         File folder = new File(this.calculate_absolute_path(path));
-        List<String> s = new ArrayList<String>();
+        List<String> s = new ArrayList<>();
         File[] listOfFiles = new File[]{};
         if (folder.isDirectory()) {
             listOfFiles = folder.listFiles();
@@ -93,6 +91,5 @@ public class DirectoryNavigator {
 	public String[] list_working_directory() throws IOException,
 			NullPointerException {
 		return this.list_working_directory(this.working_directory);
-
 	}
 }
