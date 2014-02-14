@@ -9,12 +9,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import ftp.tools.DirectoryNavigator;
 
@@ -99,7 +98,7 @@ public class FtpRequest extends Thread {
 			// Serveur.printout("Attente d'une commande");
 			messageIn = in.readLine();
 		}
-		Serveur.printout("Client déconnecté");
+		Serveur.printout("Client deconnecte");
 		sock.close();
 	}
 
@@ -128,19 +127,32 @@ public class FtpRequest extends Thread {
 	}
 
 	public void connect_data() throws IOException {
-		if (passive_mode) {
-			data_sock = data_server_sock.accept();
-		} else {
-			data_sock = new Socket(data_adress, data_port_actif);
+		try {
+			if (passive_mode) {
+				data_sock = data_server_sock.accept();
+			} else {
+				data_sock = new Socket(data_adress, data_port_actif);
+			}
+			data_out = new DataOutputStream(data_sock.getOutputStream());
+		} catch (BindException e) {
+			if (close_data()) {
+				connect_data();
+			}
 		}
-		data_out = new DataOutputStream(data_sock.getOutputStream());
 	}
 
-	public void close_data() throws IOException {
-		data_sock.close();
-		data_out.close();
-		if (passive_mode)
-			data_server_sock.close();
+	public Boolean close_data() {
+		try {
+			data_sock.close();
+			data_out.close();
+			if (passive_mode)
+				data_server_sock.close();
+			return true;
+		} catch (IOException e) {
+			// la connexion est déjà fermée, pourquoi s'acharner?
+			return false;
+		}
+
 	}
 
 	public void processUSER(String messageIn) {
@@ -246,35 +258,53 @@ public class FtpRequest extends Thread {
 	public void processLIST(String messageIn) {
 		respond(150, "Here comes the directory listing.");
 		String[] parts = messageIn.split(" ");
-
 		try {
-
 			this.connect_data();
+		} catch (IOException e) {
+			this.respond(425, "unable to open data connexion");
+			return;
+		}
 
-			if (parts.length >= 2) {
-				for (int i = 1; i < parts.length; i++) {
-					String[] result = directory
-							.list_working_directory(parts[i]);
+		if (parts.length >= 2) {
+			for (int i = 1; i < parts.length; i++) {
+				String[] result = new String[] {};
+				try {
+					result = directory.list_working_directory(parts[i]);
+				} catch (IOException e1) {
+					respond(550, "folder not found.");
+
+					return;
+				}
+
+				try {
 					for (int j = 0; j < result.length; j++) {
 						data_out.writeBytes(result[j]);
 					}
+				} catch (IOException e) {
+					// ERREUR DE CONNEXION DE DONNÉES
+					return;
 				}
-			} else {
-				String[] result = directory.list_working_directory();
+
+			}
+		} else {
+			String[] result;
+			try {
+				result = directory.list_working_directory();
 				for (int j = 0; j < result.length; j++) {
 					data_out.writeBytes(result[j]);
 				}
+			} catch (IOException e) {
+				respond(550, "folder not found.");
+				return;
 			}
 
-			close_data();
-
-			respond(226, "Directory send OK.");
-
-		} catch (Exception ex) {
-			Logger.getLogger(FtpRequest.class.getName()).log(Level.SEVERE,
-					null, ex);
-			respond(550, "folder not found.");
 		}
+
+		close_data();
+
+		respond(226, "Directory send OK.");
+
+		// respond(550, "folder not found.");
 
 	}
 
@@ -296,22 +326,27 @@ public class FtpRequest extends Thread {
 
 			} else {
 
-				directory.change_working_directory("/");
-				this.respond(
-						250,
-						"OK. Current directory is "
-								+ directory.get_working_directory());
+				if (directory.change_working_directory()) {
+					this.respond(
+							250,
+							"OK. Current directory is "
+									+ directory.get_working_directory());
+				} else {
+					this.respond(550, "root folder not found.");
+
+				}
 			}
 		} catch (Exception ex) {
 			this.respond(550,
 					"Can't change directory to aaa: No such file or directory.");
-			try {
-				directory.change_working_directory("/");
+			if (directory.change_working_directory()) {
 				this.respond(
 						250,
 						"OK. Current directory is "
 								+ directory.get_working_directory());
-			} catch (Exception ex1) {
+			} else {
+				this.respond(550, "root folder not found.");
+
 			}
 
 		}
@@ -319,11 +354,16 @@ public class FtpRequest extends Thread {
 
 	public void processCDUP(String messageIn) {
 		try {
-			directory.change_working_directory("../");
+			directory.go_upper_directory();
 		} catch (Exception ex) {
-			try {
-				directory.change_working_directory("/");
-			} catch (Exception ex1) {
+			if (directory.change_working_directory()) {
+				this.respond(
+						250,
+						"OK. Current directory is "
+								+ directory.get_working_directory());
+			} else {
+				this.respond(550, "root folder not found.");
+
 			}
 		}
 		this.respond(250,

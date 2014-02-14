@@ -88,8 +88,7 @@ public class DirectoryNavigator {
         throw new IOException("wrong path");
     }
 
-	public String[] list_working_directory() throws IOException,
-			NullPointerException {
+	public String[] list_working_directory() throws IOException {
 		return this.list_working_directory(this.working_directory);
 	}
 }
