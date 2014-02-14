@@ -12,11 +12,11 @@ public class DirectoryNavigator {
 
     public DirectoryNavigator(String real_directory) {
         this.real_directory = real_directory;
-        this.working_directory = "/";
+        this.working_directory = File.separator;
     }
 
     public String get_absolute_path_to_working_directory() throws IOException {
-        File f = new File(this.real_directory + "/" + this.working_directory + "/");
+        File f = new File(this.real_directory + File.separator + this.working_directory + File.separator);
         return f.getCanonicalPath();
     }
 
@@ -25,10 +25,10 @@ public class DirectoryNavigator {
     }
 
     public void change_working_directory(String path) throws NullPointerException, IOException {
-        String head = this.calculate_absolute_path("/");
+        String head = this.calculate_absolute_path(File.separator);
         String absolute = this.calculate_absolute_path(path);
         this.working_directory = absolute.replace(head, "");
-        this.working_directory += "/";
+        this.working_directory += File.separator;
     }
 
     public String[] list_working_directory(String path) throws IOException, NullPointerException {
@@ -58,23 +58,13 @@ public class DirectoryNavigator {
         return simple;
     }
 
-    private static String humanReadableByteCount(long bytes) {
-        int unit = 1024;
-        char u = 'b';
-        if (bytes < unit) {
-            return bytes + " " + u;
-        }
-        int exp = (int) (Math.log(bytes) / Math.log(unit));
-        String pre = "KMGTPE".charAt(exp - 1) + "" + u;
-        return String.format("%.1f %s", bytes / Math.pow(unit, exp), pre);
-    }
 
     public String calculate_absolute_path(String path) throws IOException, NullPointerException {
-        File f = new File(this.real_directory + "/");
+        File f = new File(this.real_directory + File.separator);
         String s = f.getCanonicalPath();
-        File file = new File(s + "/" + path);
-        if (!path.startsWith("/")) {
-            file = new File(s + "/" + this.working_directory + "/" + path);
+        File file = new File(s + File.separator + path);
+        if (!path.startsWith(File.separator)) {
+            file = new File(s + File.separator + this.working_directory + File.separator + path);
         }
         String b = file.getCanonicalPath();
         if (b.startsWith(s)) {
