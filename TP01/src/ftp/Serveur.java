@@ -8,8 +8,9 @@ import java.util.Arrays;
 
 /**
  * Classe a executer pour lancer un serveur ftp
+ * 
  * @author Groupe 4 équipe 1
- *
+ * 
  */
 public class Serveur {
 
@@ -19,7 +20,9 @@ public class Serveur {
 
 	/**
 	 * Permet d'afficher une string cote serveur si le mode verbose est activé
-	 * @param s la string a afficher
+	 * 
+	 * @param s
+	 *            la string a afficher
 	 */
 	public static void printout(String s) {
 		if (verbose) {

@@ -6,45 +6,43 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
-
 import junit.framework.TestCase;
 
 import ftp.*;
-
 
 import org.junit.Test;
 
 public class FtpReqestTest extends TestCase {
 
-	   private FtpRequest ftp;
-	
-   public FtpReqestTest(String name) {
-	   super(name);
-	  }
-	   
-   protected void setUp() throws Exception {
-	   super.setUp();
-	   Socket sock;
-       try {
-           sock = (new ServerSocket(Serveur.port)).accept();
-           ftp = new FtpRequest(sock, Serveur.port, "\\Documents", Serveur.dataport);
-           ftp.start();
-      
-       } catch (IOException e) {
-           e.printStackTrace();
-       }
-	   }
-	    
-   protected void tearDown() throws Exception {
-	   super.tearDown();
-	   ftp = null;
-	   }
-   
+	private FtpRequest ftp;
+
+	public FtpReqestTest(String name) {
+		super(name);
+	}
+
+	protected void setUp() throws Exception {
+		super.setUp();
+		Socket sock;
+		try {
+			sock = (new ServerSocket(Serveur.port)).accept();
+			ftp = new FtpRequest(sock, Serveur.port, "\\Documents",
+					Serveur.dataport);
+			ftp.start();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected void tearDown() throws Exception {
+		super.tearDown();
+		ftp = null;
+	}
+
 	@Test
 	public void testRun() {
 		ftp.run();
-		assertEquals(ftp.getState(),java.lang.Thread.State.RUNNABLE);
+		assertEquals(ftp.getState(), java.lang.Thread.State.RUNNABLE);
 	}
 
 	@Test
