@@ -1,7 +1,5 @@
 package ftp;
 
-//import ftp.tools.DataTransferManager;
-
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
@@ -15,8 +13,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import ftp.tools.DirectoryNavigator;
 
+/**
+ * Classe permettant de gerer les requetes faites par le client connecté au serveur ftp
+ * @author Groupe 4 équipe 1
+ *
+ */
 public class FtpRequest extends Thread {
 
 	private Socket sock;
@@ -35,6 +37,12 @@ public class FtpRequest extends Thread {
 	private String mdp;
 	private Boolean passive_mode = false;
 
+	/**
+	 * Constructeur du FtpRequest
+	 * @param sock socket representant la connection avec le client pour la transmission des commandes
+	 * @param repertoire repertoire de base du serveur ftp
+	 * @param data_port_passif port pour l'envoi de donnees en mode passif
+	 */
 	public FtpRequest(Socket sock, String repertoire, int data_port_passif) {
 		this.sock = sock;
 		this.repertoire = repertoire;
@@ -42,6 +50,9 @@ public class FtpRequest extends Thread {
 		this.data_port_passif = data_port_passif;
 	}
 
+	/**
+	 * Lancement du thread
+	 */
 	public void run() {
 		try {
 			in = new BufferedReader(
@@ -53,6 +64,10 @@ public class FtpRequest extends Thread {
 		}
 	}
 
+	/**
+	 * Permet de recevoir puis de traiter les commandes envoyees par le client
+	 * @throws IOException
+	 */
 	public void processRequest() throws IOException {
 		this.directory = new DirectoryNavigator(this.repertoire);
 		this.respond(220, "Welcome on our server!");
@@ -102,6 +117,11 @@ public class FtpRequest extends Thread {
 		sock.close();
 	}
 
+	/**
+	 * Permet d'envoyer une reponse au client sur le socket des commandes
+	 * @param code correspond au code de la reponse
+	 * @param information message associe au code
+	 */
 	public void respond(int code, String information) {
 		try {
 			out.writeBytes(Integer.toString(code) + " " + information + "\n");
@@ -113,6 +133,11 @@ public class FtpRequest extends Thread {
 		}
 	}
 
+	/**
+	 * Permet d'envoyer plusieurs reponses au client sur le socket des commandes
+	 * @param code correspond au code des reponses
+	 * @param information messages associes au code
+	 */
 	public void multiple_respond(int code, String[] information) {
 		try {
 			for (int i = 0; i < information.length; i++) {
@@ -126,6 +151,10 @@ public class FtpRequest extends Thread {
 		}
 	}
 
+	/**
+	 * Active la communication sur le socket des donnees en mode passif ou actif
+	 * @throws IOException
+	 */
 	public void connect_data() throws IOException {
 		try {
 			if (passive_mode) {
@@ -141,6 +170,10 @@ public class FtpRequest extends Thread {
 		}
 	}
 
+	/**
+	 * Ferme la communication sur le socket des donnes en mode passif ou actif
+	 * @return
+	 */
 	public Boolean close_data() {
 		try {
 			data_sock.close();
@@ -155,6 +188,10 @@ public class FtpRequest extends Thread {
 
 	}
 
+	/**
+	 * Traitement de la commande USER permettant au client de donner le login
+	 * @param messageIn string contenant USER puis la login du client
+	 */
 	public void processUSER(String messageIn) {
 		Serveur.printout("Methode processUSER");
 		String[] parts = messageIn.split(" ");
@@ -169,6 +206,10 @@ public class FtpRequest extends Thread {
 		}
 	}
 
+	/**
+	 * Traitement de la commande PASS permettant au client de donner le mot de passe
+	 * @param messageIn string contenant PASS puis le mot de passe du client
+	 */
 	public void processPASS(String messageIn) throws IOException {
 		Serveur.printout("Methode processPASS");
 		String[] parts = messageIn.split(" ");
@@ -209,6 +250,10 @@ public class FtpRequest extends Thread {
 
 	}
 
+	/**
+	 * Traitement de la commande RETR permettant au client de retirer un fichier se trouvant sur le serveur
+	 * @param messageIn string contenant RETR puis le nom du fichier
+	 */
 	public void processRETR(String messageIn) {
 
 		FileInputStream fis = null;
@@ -233,6 +278,10 @@ public class FtpRequest extends Thread {
 
 	}
 
+	/**
+	 * Traitement de la commande STOR permettant au client d'envoyer un fichier pour le stocker sur le serveur
+	 * @param messageIn string contenant STOR puis le nom du fichier
+	 */
 	public void processSTOR(String messageIn) {
 
 		FileOutputStream fos = null;
@@ -255,6 +304,10 @@ public class FtpRequest extends Thread {
 		}
 	}
 
+	/**
+	 * Traitement de la commande LIST permettant au client de lister les fichiers du serveur
+	 * @param messageIn string contenant LIST et facultativement les repertoires a lister
+	 */
 	public void processLIST(String messageIn) {
 		respond(150, "Here comes the directory listing.");
 		String[] parts = messageIn.split(" ");
@@ -308,11 +361,19 @@ public class FtpRequest extends Thread {
 
 	}
 
+	/**
+	 * Traitement de la commande PWD permettant au client de connaitre son repertoire courant
+	 * @param messageIn string contenant PWD
+	 */
 	public void processPWD(String messageIn) {
 		this.respond(257, "\"" + directory.get_working_directory()
 				+ "\" is your current location");
 	}
 
+	/**
+	 * Traitement de la commande CWD permettant au client de changer son repertoire courant
+	 * @param messageIn string contenant CWD puis le nouveau repertoire courant
+	 */
 	public void processCWD(String messageIn) {
 		String[] parts = messageIn.split(" ");
 		try {
@@ -352,6 +413,10 @@ public class FtpRequest extends Thread {
 		}
 	}
 
+	/**
+	 * Traitement de la commande CDUP permettant au client de changer son repertoire courant pour le repertoire du dessus
+	 * @param messageIn string contenant CDUP
+	 */
 	public void processCDUP(String messageIn) {
 		try {
 			directory.go_upper_directory();
@@ -371,6 +436,10 @@ public class FtpRequest extends Thread {
 
 	}
 
+	/**
+	 * Traitement de la commande PASV permettant au client de passer en mode passif et de recuperer le port sur lequel il devra se connecter
+	 * @param messageIn string contenant PASV
+	 */
 	private void processPASV(String messageIn) throws IOException {
 		this.passive_mode = true;
 		this.data_server_sock = new ServerSocket(this.data_port_passif);
@@ -388,6 +457,10 @@ public class FtpRequest extends Thread {
 				+ ") \n");
 	}
 
+	/**
+	 * Traitement de la commande PORT permettant au client de passer en mode actif et de passer au serveur le port sur lequel il devra se connecter
+	 * @param messageIn string contenant PORT suivi du port sur lequel se connecter
+	 */
 	private void processPORT(String messageIn) {
 		this.passive_mode = false;
 		String[] port_args = messageIn.split(" ")[1].split(",");
@@ -404,6 +477,10 @@ public class FtpRequest extends Thread {
 		}
 	}
 
+	/**
+	 * Traitement de la commande QUIT permettant au client de quitter la session en cours
+	 * @param messageIn string contenant QUIT
+	 */
 	public void processQUIT(String messageIn) {
 		this.multiple_respond(221, new String[] { "Goodbye.", "quit" });
 		Serveur.printout("Connexion fermee par l'utilisateur");

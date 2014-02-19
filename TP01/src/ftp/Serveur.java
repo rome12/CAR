@@ -6,12 +6,21 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 
+/**
+ * Classe a executer pour lancer un serveur ftp
+ * @author Groupe 4 équipe 1
+ *
+ */
 public class Serveur {
 
 	static boolean verbose = false;
 	public static int port = 7000;
 	public static int data_port_passif = 7010;
 
+	/**
+	 * Permet d'afficher une string cote serveur si le mode verbose est activé
+	 * @param s la string a afficher
+	 */
 	public static void printout(String s) {
 		if (verbose) {
 			System.out.println(s);
