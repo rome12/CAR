@@ -12,6 +12,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Classe permettant de gerer les requetes faites par le client connecté au
@@ -112,8 +114,12 @@ public class FtpRequest extends Thread {
 					} else if (tmp.equals("QUIT")) {
 						this.processQUIT(messageIn);
 						break;
+                                        } else if (tmp.equals("DELE")) {
+                                                this.processDELE(messageIn);
+                                        } else if (tmp.equals("RMD")) {
+                                                this.processRMD(messageIn);
 					} else {
-						this.respond(200, "Command not implemented");
+						this.respond(500, "Command not implemented");
 					}
 				}
 			}
@@ -534,4 +540,40 @@ public class FtpRequest extends Thread {
 		Serveur.printout("Connexion fermee par l'utilisateur");
 		running = false;
 	}
+        /**
+        * Traitement de la commande DELE permettant au client de supprimer un fichier
+        * 
+        * @param messageIn 
+        *          string contenant DELE
+        */
+        private void processDELE(String messageIn) {
+                process_delete(messageIn.replace("DELE ", ""));                
+        }
+        /**
+        * Traitement de la commande RMD permettant au client de supprimer un fichier
+        * 
+        * @param messageIn 
+        *          string contenant RMD
+        */
+        private void processRMD(String messageIn) {
+                process_delete(messageIn.replace("RMD ", ""));                
+        }
+        /**
+         *Traitement de la supression 
+         * 
+         * @param messageIn 
+         *          string contenant le fichier à supprimer 
+         */
+        private void process_delete(String m){
+                try {
+                        if(directory.remove_file_or_folder(m)){
+                                this.respond(250, "file/directory was successfully removed");
+                        }else{
+                                this.respond(550,"file/directory can't be deleted");
+                        }
+                } catch (IOException ex) {
+                        this.respond(500,"file/directory not found");
+
+                }
+        }
 }
