@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  * Classe de gestion de la navigation à travers les répertoires.
  * @author Groupe 4 équipe 1.
@@ -118,5 +120,17 @@ public class DirectoryNavigator {
 
     public String[] list_working_directory() throws IOException {
         return this.list_working_directory(this.working_directory);
+    }
+    /**
+     * Supprimer un fichier ou un dossier.
+     * @param file le fichier a supprimer chemin absolu/relatif
+     * @return succès en cas de suppression
+     * @throws IOException le fichier n'existe pas;
+     */
+    public Boolean remove_file_or_folder(String file) throws IOException{
+            File f = new File(this.calculate_absolute_path(file));
+            boolean delete= f.delete();
+            return delete;
+            
     }
 }
