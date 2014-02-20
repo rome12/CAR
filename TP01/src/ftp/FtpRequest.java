@@ -91,6 +91,7 @@ public class FtpRequest extends Thread {
 				String[] parts = messageIn.split(" ");
 				if (parts.length > 0) {
 					String tmp = parts[0].toUpperCase();
+<<<<<<< HEAD
 
 					if (!user_is_connected) {
 						if (tmp.equals("USER")) {
@@ -100,6 +101,37 @@ public class FtpRequest extends Thread {
 						} else {
 							this.respond(500, "Command not implemented");
 						}
+=======
+					if (tmp.equals("USER")) {
+						this.processUSER(messageIn);
+					} else if (tmp.equals("PASS")) {
+						this.processPASS(messageIn);
+					} else if (tmp.equals("RETR")) {
+						this.processRETR(messageIn);
+					} else if (tmp.equals("STOR")) {
+						this.processSTOR(messageIn);
+					} else if (tmp.equals("LIST")) {
+						this.processLIST(messageIn);
+					} else if ("PWD".equals(tmp)) {
+						this.processPWD(messageIn);
+					} else if ("CWD".equals(tmp)) {
+						this.processCWD(messageIn);
+					} else if ("PASV".equals(tmp)) {
+						this.processPASV(messageIn);
+					} else if ("PORT".equals(tmp)) {
+						this.processPORT(messageIn);
+					} else if (tmp.equals("CDUP")) {
+						this.processCDUP(messageIn);
+					} else if (tmp.equals("QUIT")) {
+						this.processQUIT(messageIn);
+						break;
+                    } else if (tmp.equals("DELE")) {
+                        this.processDELE(messageIn);
+                    } else if (tmp.equals("RMD")) {
+                        this.processRMD(messageIn);
+					} else if (tmp.equals("TYPE")) {
+                        this.processTYPE(messageIn);
+>>>>>>> e19bf0da5ca1cbe751f7dc1bebee3f1ce96db04c
 					} else {
 						if (tmp.equals("RETR")) {
 							this.processRETR(messageIn);
@@ -557,6 +589,7 @@ public class FtpRequest extends Thread {
 		Serveur.printout("Connexion fermee par l'utilisateur");
 		running = false;
 	}
+<<<<<<< HEAD
 
 	/**
 	 * Traitement de la commande DELE permettant au client de supprimer un
@@ -607,4 +640,46 @@ public class FtpRequest extends Thread {
 	public void processTYPE(String messageIn) {
 		this.respond(200, "Not implemented : Switching to Binary Mode");
 	}
+=======
+        /**
+        * Traitement de la commande DELE permettant au client de supprimer un fichier
+        * 
+        * @param messageIn 
+        *          string contenant DELE
+        */
+        private void processDELE(String messageIn) {
+                process_delete(messageIn.replace("DELE ", ""));                
+        }
+        /**
+        * Traitement de la commande RMD permettant au client de supprimer un fichier
+        * 
+        * @param messageIn 
+        *          string contenant RMD
+        */
+        private void processRMD(String messageIn) {
+                process_delete(messageIn.replace("RMD ", ""));                
+        }
+        /**
+         *Traitement de la supression 
+         * 
+         * @param messageIn 
+         *          string contenant le fichier à supprimer 
+         */
+        private void process_delete(String m){
+                try {
+                        if(directory.remove_file_or_folder(m)){
+                                this.respond(250, "file/directory was successfully removed");
+                        }else{
+                                this.respond(550,"file/directory can't be deleted");
+                        }
+                } catch (IOException ex) {
+                        this.respond(500,"file/directory not found");
+
+                }
+        }
+        
+        private void processTYPE(String messageIn) {
+           this.respond(200, "Switching to Binary mode");
+        }
+>>>>>>> e19bf0da5ca1cbe751f7dc1bebee3f1ce96db04c
 }
