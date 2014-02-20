@@ -2,6 +2,7 @@ package ftp;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,8 +13,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Classe permettant de gerer les requetes faites par le client connecté au
@@ -39,6 +38,7 @@ public class FtpRequest extends Thread {
 	private String user;
 	private String mdp;
 	private Boolean passive_mode = false;
+	private Boolean user_is_connected = false;
 
 	/**
 	 * Constructeur du FtpRequest
@@ -68,7 +68,7 @@ public class FtpRequest extends Thread {
 			out = new DataOutputStream(sock.getOutputStream());
 			this.processRequest();
 		} catch (IOException e) {
-			e.printStackTrace();
+			// connexion réinitialisée
 		}
 	}
 
@@ -91,39 +91,47 @@ public class FtpRequest extends Thread {
 				String[] parts = messageIn.split(" ");
 				if (parts.length > 0) {
 					String tmp = parts[0].toUpperCase();
-					if (tmp.equals("USER")) {
-						this.processUSER(messageIn);
-					} else if (tmp.equals("PASS")) {
-						this.processPASS(messageIn);
-					} else if (tmp.equals("RETR")) {
-						this.processRETR(messageIn);
-					} else if (tmp.equals("STOR")) {
-						this.processSTOR(messageIn);
-					} else if (tmp.equals("LIST")) {
-						this.processLIST(messageIn);
-					} else if ("PWD".equals(tmp)) {
-						this.processPWD(messageIn);
-					} else if ("CWD".equals(tmp)) {
-						this.processCWD(messageIn);
-					} else if ("PASV".equals(tmp)) {
-						this.processPASV(messageIn);
-					} else if ("PORT".equals(tmp)) {
-						this.processPORT(messageIn);
-					} else if (tmp.equals("CDUP")) {
-						this.processCDUP(messageIn);
-					} else if (tmp.equals("QUIT")) {
-						this.processQUIT(messageIn);
-						break;
-                                        } else if (tmp.equals("DELE")) {
-                                                this.processDELE(messageIn);
-                                        } else if (tmp.equals("RMD")) {
-                                                this.processRMD(messageIn);
+
+					if (!user_is_connected) {
+						if (tmp.equals("USER")) {
+							this.processUSER(messageIn);
+						} else if (tmp.equals("PASS")) {
+							this.processPASS(messageIn);
+						} else {
+							this.respond(500, "Command not implemented");
+						}
 					} else {
-						this.respond(500, "Command not implemented");
+						if (tmp.equals("RETR")) {
+							this.processRETR(messageIn);
+						} else if (tmp.equals("STOR")) {
+							this.processSTOR(messageIn);
+						} else if (tmp.equals("LIST")) {
+							this.processLIST(messageIn);
+						} else if ("PWD".equals(tmp)) {
+							this.processPWD(messageIn);
+						} else if ("CWD".equals(tmp)) {
+							this.processCWD(messageIn);
+						} else if ("PASV".equals(tmp)) {
+							this.processPASV(messageIn);
+						} else if ("PORT".equals(tmp)) {
+							this.processPORT(messageIn);
+						} else if (tmp.equals("CDUP")) {
+							this.processCDUP(messageIn);
+						} else if (tmp.equals("QUIT")) {
+							this.processQUIT(messageIn);
+							break;
+						} else if (tmp.equals("DELE")) {
+							this.processDELE(messageIn);
+						} else if (tmp.equals("RMD")) {
+							this.processRMD(messageIn);
+						} else if (tmp.equals("TYPE")) {
+							this.processTYPE(messageIn);
+						} else {
+							this.respond(500, "Command not implemented");
+						}
 					}
 				}
 			}
-			// Serveur.printout("Attente d'une commande");
 			messageIn = in.readLine();
 		}
 		Serveur.printout("Client deconnecte");
@@ -203,7 +211,6 @@ public class FtpRequest extends Thread {
 				data_server_sock.close();
 			return true;
 		} catch (IOException e) {
-			// la connexion est déjà fermée, pourquoi s'acharner?
 			return false;
 		}
 
@@ -260,6 +267,7 @@ public class FtpRequest extends Thread {
 					}
 					if ((this.user + "\n").equals(chaine1)
 							&& (this.mdp + "\n").equals(chaine2)) {
+						user_is_connected=true;
 						respond(230,
 								"User logged in, proceed. Logged out if appropriate.");
 						brr.close();
@@ -370,7 +378,6 @@ public class FtpRequest extends Thread {
 						data_out.writeBytes(result[j]);
 					}
 				} catch (IOException e) {
-					// ERREUR DE CONNEXION DE DONNÉES
 					return;
 				}
 
@@ -392,9 +399,6 @@ public class FtpRequest extends Thread {
 		close_data();
 
 		respond(226, "Directory send OK.");
-
-		// respond(550, "folder not found.");
-
 	}
 
 	/**
@@ -420,12 +424,22 @@ public class FtpRequest extends Thread {
 		String[] parts = messageIn.split(" ");
 		try {
 			if (parts.length >= 2) {
+				File f = new File(directory.calculate_absolute_path(parts[1]));
 
-				directory.change_working_directory(parts[1]);
-				this.respond(
-						250,
-						"OK. Current directory is "
-								+ directory.get_working_directory());
+				if (f.exists() && f.isDirectory()) {
+
+					directory.change_working_directory(parts[1]);
+
+					this.respond(
+							250,
+							"OK. Current directory is "
+									+ directory.get_working_directory());
+				} else {
+					this.respond(
+							550,
+							"OK. Folder not found : "
+									+ directory.get_working_directory());
+				}
 
 			} else {
 
@@ -465,6 +479,10 @@ public class FtpRequest extends Thread {
 	public void processCDUP(String messageIn) {
 		try {
 			directory.go_upper_directory();
+			this.respond(
+					250,
+					"OK. Current directory is "
+							+ directory.get_working_directory());
 		} catch (Exception ex) {
 			if (directory.change_working_directory()) {
 				this.respond(
@@ -476,8 +494,6 @@ public class FtpRequest extends Thread {
 
 			}
 		}
-		this.respond(250,
-				"OK. Current directory is " + directory.get_working_directory());
 
 	}
 
@@ -488,7 +504,7 @@ public class FtpRequest extends Thread {
 	 * @param messageIn
 	 *            string contenant PASV
 	 */
-	private void processPASV(String messageIn) throws IOException {
+	public void processPASV(String messageIn) throws IOException {
 		this.passive_mode = true;
 		this.data_server_sock = new ServerSocket(this.data_port_passif);
 		String s = Integer.toHexString(this.data_port_passif);
@@ -512,7 +528,7 @@ public class FtpRequest extends Thread {
 	 * @param messageIn
 	 *            string contenant PORT suivi du port sur lequel se connecter
 	 */
-	private void processPORT(String messageIn) {
+	public void processPORT(String messageIn) {
 		this.passive_mode = false;
 		String[] port_args = messageIn.split(" ")[1].split(",");
 		try {
@@ -536,44 +552,59 @@ public class FtpRequest extends Thread {
 	 *            string contenant QUIT
 	 */
 	public void processQUIT(String messageIn) {
+		user_is_connected=false;
 		this.multiple_respond(221, new String[] { "Goodbye.", "quit" });
 		Serveur.printout("Connexion fermee par l'utilisateur");
 		running = false;
 	}
-        /**
-        * Traitement de la commande DELE permettant au client de supprimer un fichier
-        * 
-        * @param messageIn 
-        *          string contenant DELE
-        */
-        private void processDELE(String messageIn) {
-                process_delete(messageIn.replace("DELE ", ""));                
-        }
-        /**
-        * Traitement de la commande RMD permettant au client de supprimer un fichier
-        * 
-        * @param messageIn 
-        *          string contenant RMD
-        */
-        private void processRMD(String messageIn) {
-                process_delete(messageIn.replace("RMD ", ""));                
-        }
-        /**
-         *Traitement de la supression 
-         * 
-         * @param messageIn 
-         *          string contenant le fichier à supprimer 
-         */
-        private void process_delete(String m){
-                try {
-                        if(directory.remove_file_or_folder(m)){
-                                this.respond(250, "file/directory was successfully removed");
-                        }else{
-                                this.respond(550,"file/directory can't be deleted");
-                        }
-                } catch (IOException ex) {
-                        this.respond(500,"file/directory not found");
 
-                }
-        }
+	/**
+	 * Traitement de la commande DELE permettant au client de supprimer un
+	 * fichier
+	 * 
+	 * @param messageIn
+	 *            string contenant DELE
+	 */
+	public void processDELE(String messageIn) {
+		process_delete(messageIn.replace("DELE ", ""));
+	}
+
+	/**
+	 * Traitement de la commande RMD permettant au client de supprimer un
+	 * fichier
+	 * 
+	 * @param messageIn
+	 *            string contenant RMD
+	 */
+	public void processRMD(String messageIn) {
+		process_delete(messageIn.replace("RMD ", ""));
+	}
+
+	/**
+	 * Traitement de la supression
+	 * 
+	 * @param messageIn
+	 *            string contenant le fichier à supprimer
+	 */
+	public void process_delete(String m) {
+		try {
+			if (directory.remove_file_or_folder(m)) {
+				this.respond(250, "file/directory was successfully removed");
+			} else {
+				this.respond(550, "file/directory can't be deleted");
+			}
+		} catch (IOException ex) {
+			this.respond(500, "file/directory not found");
+
+		}
+	}
+
+	/**
+	 * Gestion de la commande TYPE
+	 * 
+	 * @param messageIn
+	 */
+	public void processTYPE(String messageIn) {
+		this.respond(200, "Not implemented : Switching to Binary Mode");
+	}
 }

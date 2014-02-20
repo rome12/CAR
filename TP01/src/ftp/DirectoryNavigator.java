@@ -44,8 +44,7 @@ public class DirectoryNavigator {
 	 *             le dossier supperieur n'existe pas.
 	 */
 	public void go_upper_directory() throws IOException {
-		change_working_directory(".." + File.separator);
-
+			change_working_directory("..");		
 	}
 
 	/**
@@ -92,11 +91,7 @@ public class DirectoryNavigator {
 	 */
 	public String[] list_working_directory(String path) throws IOException {
 		File folder = new File(this.calculate_absolute_path(path));
-		List<String> s = new ArrayList<String>();// indispensable sous Java 6,
-													// déclanche un warning sous
-													// Java 7.
-		// sous Java 7, on peut utiliser la syntaxe : List<String> s = new
-		// ArrayList<>(); pour éviter la redondance.
+		List<String> s = new ArrayList<String>();
 		File[] listOfFiles = new File[] {};
 		if (folder.isDirectory()) {
 			listOfFiles = folder.listFiles();
@@ -140,7 +135,6 @@ public class DirectoryNavigator {
 		}
 		String b = file.getCanonicalPath();
 		if (b.startsWith(s)) {
-
 			return b;
 		}
 		throw new IOException("wrong path");

@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 /**
  * Classe de gestion de la navigation à travers les répertoires.
  * @author Groupe 4 équipe 1.
@@ -73,8 +71,7 @@ public class DirectoryNavigator {
  */
     public String[] list_working_directory(String path) throws IOException {
         File folder = new File(this.calculate_absolute_path(path));
-        List<String> s = new ArrayList<String>();// indispensable sous Java 6, déclanche un warning sous Java 7.
-        //sous Java 7, on peut utiliser la syntaxe : List<String> s = new ArrayList<>(); pour éviter la redondance.
+        List<String> s = new ArrayList<String>();
         File[] listOfFiles = new File[]{};
         if (folder.isDirectory()) {
             listOfFiles = folder.listFiles();
