@@ -114,10 +114,12 @@ public class FtpRequest extends Thread {
 					} else if (tmp.equals("QUIT")) {
 						this.processQUIT(messageIn);
 						break;
-                                        } else if (tmp.equals("DELE")) {
-                                                this.processDELE(messageIn);
-                                        } else if (tmp.equals("RMD")) {
-                                                this.processRMD(messageIn);
+                    } else if (tmp.equals("DELE")) {
+                        this.processDELE(messageIn);
+                    } else if (tmp.equals("RMD")) {
+                        this.processRMD(messageIn);
+					} else if (tmp.equals("TYPE")) {
+                        this.processTYPE(messageIn);
 					} else {
 						this.respond(500, "Command not implemented");
 					}
@@ -575,5 +577,9 @@ public class FtpRequest extends Thread {
                         this.respond(500,"file/directory not found");
 
                 }
+        }
+        
+        private void processTYPE(String messageIn) {
+           this.respond(200, "Switching to Binary mode");
         }
 }
