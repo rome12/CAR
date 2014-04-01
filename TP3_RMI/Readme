@@ -1,0 +1,3 @@
+Le TP RMI est pratiquement terminé :
+- J'ai implémenté la version en arbre + les tests bash qui vont avec
+- J'ai implémenté la version en graphe + les test bash (par contre l'algo de broadcast est à revoir car il arrive que l'on repasse sur des noeuds déjà broadcastés du fait de la récursivité)
