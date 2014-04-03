@@ -61,4 +61,5 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 	public int getId() throws RemoteException {
 		return this.id;
 	}
+	
 }

@@ -20,4 +20,5 @@ public interface SiteItf extends Remote {
 	public int getId() throws RemoteException;
 	
 	public List<String> getMsgReceived() throws RemoteException ;
+	
 }
