@@ -33,6 +33,7 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 	
 	//Broadcast vers tous les voisins
 	public void broadcast(String data) throws RemoteException{
+		this.receive(data,this.id);
 		this.broadcast(data,(new Date().getTime()/1000)+new Random().nextLong());
 	}
 
