@@ -1,0 +1,3 @@
+Idee pour régler le problème de broadcast : Transmission de la list par copie -> envoie plutot un objet RMI.
+Créer une hashmap de list dans chaque SiteImpl, transmettre un SiteItf lors du broadcast (celui qui a initié le message)
+Comme ca l'objet est transmis par référence.

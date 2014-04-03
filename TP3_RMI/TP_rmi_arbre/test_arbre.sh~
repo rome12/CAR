@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd bin
+
 rmiregistry &
 
 sleep 0.1
@@ -28,3 +30,4 @@ javapid=`ps | grep java | cut -d ' ' -f 1`
 killall rmiregistry
 kill $javapid
 
+cd ..

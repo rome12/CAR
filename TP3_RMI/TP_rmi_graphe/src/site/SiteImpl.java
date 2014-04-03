@@ -3,6 +3,7 @@ package site;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class SiteImpl extends UnicastRemoteObject implements SiteItf {
@@ -11,11 +12,13 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 
 	private int id;
 	private List<SiteItf> neighbors;
+	//private HashMap<???,List> broadcasted;
 
 	public SiteImpl(int id) throws RemoteException {
 		super();
 		this.id = id;
 		this.neighbors = new ArrayList<SiteItf>();
+		
 	}
 
 	public void addNeighbor(SiteItf neighbor) throws RemoteException {
