@@ -25,9 +25,9 @@ java client.CreateEdge 1 5
 java client.CreateEdge 5 6
 java client.CreateEdge 4 6
 
-java client.SendMsg 3 monMessage
+java client.SendMsg 1 monMessage
 
-javapid=`ps | grep java | cut -d ' ' -f 2`
+javapid=`ps | grep java | cut -d ' ' -f 1`
 killall rmiregistry
 kill $javapid
 
