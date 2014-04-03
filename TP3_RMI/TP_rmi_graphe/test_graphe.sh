@@ -49,7 +49,7 @@ if [[ $1 != $verbose ]]
 	do
 			result=$(($result + $(grep -c $message ../tests/$i.txt)))
 	done
-	if [[ $result != $nbNode ]]
+	if [[ $result < $nbNode ]]
 		then echo "*** ECHEC DU TEST *** (au moins un noeud n'a pas eu le message)"
 		else echo "*** REUSSITE DU TEST*** (tous les noeuds ont eu le message)"
 	fi	

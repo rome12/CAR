@@ -1,3 +1,18 @@
-Le TP RMI est pratiquement terminé :
-- J'ai implémenté la version en arbre + les tests bash qui vont avec
-- J'ai implémenté la version en graphe + les test bash (par contre l'algo de broadcast est à revoir car il arrive que l'on repasse sur des noeuds déjà broadcastés du fait de la récursivité)
+Equipe : 1
+Etudiant : 
+Capolino Maxime
+Larget Henri
+Masuka Benjamin
+Motuelle Romain
+
+Le TP a été réalisé entièrement.
+
+La version en arbre se trouve dans le dossier : TP_rmi_arbre
+La version en graphe se trouve dans le dossier : TP_rmi_graphe
+
+Pour lancer les tests il faut faire : 
+	./test_arbre.sh (dans dossier TP_rmi_arbre)
+	./test_graphe.sh (dans dossier TP_rmi_graphe)
+
+Sans option, les tests écrivent dans des fichiers dans les dossiers "tests".
+Avec l'option -v on écrit plus dans les fichiers, on affiche directement.

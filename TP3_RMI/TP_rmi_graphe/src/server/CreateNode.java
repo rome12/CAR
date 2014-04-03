@@ -11,7 +11,7 @@ public class CreateNode {
 			int id = Integer.parseInt(args[0]);
 			SiteItf leSite = new SiteImpl(id);
 			Naming.bind(args[0], leSite);
-			//System.out.println("Création du noeud " + id + " réussie");
+			// System.out.println("Création du noeud " + id + " réussie");
 		} else {
 			System.out.println("Erreur d'argument : java CreateNode ID");
 		}

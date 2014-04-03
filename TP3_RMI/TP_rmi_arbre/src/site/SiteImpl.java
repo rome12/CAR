@@ -30,26 +30,31 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 
 	public void sendToChildren(String data) throws RemoteException {
 		if (this.children.size() > 0)
-			this.messageTrace("envoie un message à tous ses fils (message:"
-					+ data + ")");
-		for (int i = 0; i < children.size(); i++) {
-			children.get(i).receive(data, this.id);
-		}
+			/*
+			 * this.messageTrace("envoie un message à tous ses fils (message:" +
+			 * data + ")");
+			 */
+			for (int i = 0; i < children.size(); i++) {
+				children.get(i).receive(data, this.id);
+			}
 	}
 
 	// Send to children except the ID child
 	public void sendToChildren(String data, int id) throws RemoteException {
 		if (this.children.size() > 1)
-			this.messageTrace("envoie un message à tous ses fils (message:"
-					+ data + ") sauf à " + id);
-		for (int i = 0; i < children.size(); i++) {
-			if (children.get(i).getId() != id)
-				children.get(i).receive(data, this.id);
-		}
+			/*
+			 * this.messageTrace("envoie un message à tous ses fils (message:" +
+			 * data + ") sauf à " + id);
+			 */
+			for (int i = 0; i < children.size(); i++) {
+				if (children.get(i).getId() != id)
+					children.get(i).receive(data, this.id);
+			}
 	}
 
 	public void sendToParent(String data) throws RemoteException {
-		this.messageTrace("envoie un message à son père (message:" + data + ")");
+		// this.messageTrace("envoie un message à son père (message:" + data +
+		// ")");
 		parent.receive(data, this.id);
 	}
 
@@ -60,6 +65,7 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 
 	// Broadcast vers tout le monde
 	public void broadcastBase(String data) throws RemoteException {
+		this.receive(data, this.id);
 		if (this.parent != null) {
 			this.sendToParent(data);
 			parent.broadcastFromChild(data, this.id);

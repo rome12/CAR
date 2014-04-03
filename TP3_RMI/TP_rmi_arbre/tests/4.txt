@@ -1,0 +1,1 @@
+Noeud[4]: recoie un message de 2 (message:monMessage)
