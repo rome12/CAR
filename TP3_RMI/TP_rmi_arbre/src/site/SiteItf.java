@@ -17,11 +17,11 @@ public interface SiteItf extends Remote {
 
 	public void receive(String data, int source) throws RemoteException;
 
-	public void broadcastBase(String data) throws RemoteException;
+	public void broadcastBase(final String data) throws RemoteException;
 
-	public void broadcastFromParent(String data) throws RemoteException;
+	public void broadcastFromParent(final String data) throws RemoteException;
 
-	public void broadcastFromChild(String data, int childId)
+	public void broadcastFromChild(final String data, int childId)
 			throws RemoteException;
 
 	public void messageTrace(String message) throws RemoteException;
