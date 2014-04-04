@@ -28,6 +28,7 @@ java client.CreateEdge 5 6
 
 echo "##Envoie du message"
 java client.SendMsg 1 $message
+sleep 0.1
 
 echo "##Suppression des noeuds"
 for i in $(seq 1 $nbNode)

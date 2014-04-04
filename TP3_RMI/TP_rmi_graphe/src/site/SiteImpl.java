@@ -39,8 +39,9 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 	}
 
 	// Broadcast vers les voisins sauf ceux déjà broadcatés
-	public void broadcast(final String data,final long idMsg) throws RemoteException {
-		
+	public void broadcast(final String data, final long idMsg)
+			throws RemoteException {
+
 		this.msgReceived.add(data + idMsg);
 		// this.messageTrace("envoi un message à tous ses voisins (message:"+data+")");
 		for (int i = 0; i < neighbors.size(); i++) {
@@ -50,7 +51,8 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 				new Thread() {
 					public void run() {
 						try {
-							if (!neighbors.get(finalI).getMsgReceived().contains(data + idMsg))
+							if (!neighbors.get(finalI).getMsgReceived()
+									.contains(data + idMsg))
 								neighbors.get(finalI).broadcast(data, idMsg);
 						} catch (RemoteException e) {
 						}

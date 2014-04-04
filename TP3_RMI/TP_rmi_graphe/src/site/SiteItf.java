@@ -12,7 +12,8 @@ public interface SiteItf extends Remote {
 
 	public void broadcast(String data) throws RemoteException;
 
-	public void broadcast(final String data,final long date) throws RemoteException;
+	public void broadcast(final String data, final long date)
+			throws RemoteException;
 
 	public void messageTrace(String message) throws RemoteException;
 

@@ -32,7 +32,7 @@ java client.SendMsg 1 $message
 echo "##Suppression des noeuds"
 for i in $(seq 1 $nbNode)
 do
-	java server.RemoveNode $i
+	java client.RemoveNode $i
 done
 echo "##Suppression des noeuds terminée"
 

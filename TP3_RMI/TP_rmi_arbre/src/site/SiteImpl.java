@@ -68,7 +68,7 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 		this.receive(data, this.id);
 		if (this.parent != null) {
 			this.sendToParent(data);
-			
+
 			new Thread() {
 				public void run() {
 					try {
@@ -77,7 +77,7 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 					}
 				}
 			}.start();
-			
+
 		}
 		this.sendToChildren(data);
 		for (int i = 0; i < children.size(); i++) {
@@ -126,7 +126,7 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 		this.sendToChildren(data, childId);
 		for (int i = 0; i < children.size(); i++) {
 			final int finalI = i;
-			if (children.get(i).getId() != childId){
+			if (children.get(i).getId() != childId) {
 				new Thread() {
 					public void run() {
 						try {
