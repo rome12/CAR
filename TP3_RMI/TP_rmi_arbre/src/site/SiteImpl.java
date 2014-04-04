@@ -59,7 +59,7 @@ public class SiteImpl extends UnicastRemoteObject implements SiteItf {
 	}
 
 	public void receive(String data, int source) throws RemoteException {
-		this.messageTrace("recoi un message de " + source + " (message:"
+		this.messageTrace("recoit un message de " + source + " (message:"
 				+ data + ")");
 	}
 

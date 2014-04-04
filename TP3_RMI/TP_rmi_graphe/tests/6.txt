@@ -1,1 +1,1 @@
-Noeud[6]: recoie un message de 4 (message:monMessage)
+Noeud[6]: recoit un message de 6 (message:monMessage)
